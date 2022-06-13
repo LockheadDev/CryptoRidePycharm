@@ -73,23 +73,54 @@ class Example(Frame):
         }
         dropdown = OptionMenu(frame, variable, *options)
         return dropdown
+    def createListBoxRides(self, frame):
+        tree = ttk.Treeview(frame, column=("c1", "c2", "c3", "c4", "c5", "c6"), show='headings', height=4)
 
-    def createListBox(self, frame):
-        tree = ttk.Treeview(frame, column=("c1", "c2", "c3"), show='headings', height=5)
-
-        tree.column("# 1", anchor=CENTER)
-        tree.heading("# 1", text="ID")
-        tree.column("# 2", anchor=CENTER)
-        tree.heading("# 2", text="FName")
-        tree.column("# 3", anchor=CENTER)
-        tree.heading("# 3", text="LName")
+        tree.column("# 1", anchor=CENTER, minwidth=0, width=100, stretch=NO)
+        tree.heading("# 1", text="Avatar")
+        tree.column("# 2", anchor=CENTER, minwidth=0, width=100, stretch=NO)
+        tree.heading("# 2", text="ID")
+        tree.column("# 3", anchor=CENTER, minwidth=0, width=100, stretch=NO)
+        tree.heading("# 3", text="Date")
+        tree.column("# 4", anchor=CENTER, minwidth=0, width=100, stretch=NO)
+        tree.heading("# 4", text="From")
+        tree.column("# 5", anchor=CENTER, minwidth=0, width=100, stretch=NO)
+        tree.heading("# 5", text="To")
+        tree.column("# 6", anchor=CENTER, minwidth=0, width=100, stretch=NO)
+        tree.heading("# 6", text="Location")
 
         # Insert the data in Treeview widget
-        tree.insert('', 'end', text="1", values=('1', 'Joe', 'Nash'))
-        tree.insert('', 'end', text="2", values=('2', 'Emily', 'Mackmohan'))
-        tree.insert('', 'end', text="3", values=('3', 'Estilla', 'Roffe'))
-        tree.insert('', 'end', text="4", values=('4', 'Percy', 'Andrews'))
-        tree.insert('', 'end', text="5", values=('5', 'Stephan', 'Heyward'))
+        tree.insert('', 'end', text="1", values=('1', 'Joe', 'Nash', 'asd', 'asd', 'asd'))
+        tree.insert('', 'end', text="1", values=('1', 'Joe', 'Nash', 'asd', 'asd', 'asd'))
+        tree.insert('', 'end', text="1", values=('1', 'Joe', 'Nash', 'asd', 'asd', 'asd'))
+        tree.insert('', 'end', text="1", values=('1', 'Joe', 'Nash', 'asd', 'asd', 'asd'))
+
+        return tree
+    def createListBoxOffer(self, frame):
+        tree = ttk.Treeview(frame, column=("c1", "c2", "c3", "c4", "c5", "c6", "c7", "c8"), show='headings', height=4)
+
+        tree.column("# 1", anchor=CENTER, minwidth=0, width=100, stretch=NO)
+        tree.heading("# 1", text="Avatar")
+        tree.column("# 2", anchor=CENTER, minwidth=0, width=100, stretch=NO)
+        tree.heading("# 2", text="ID")
+        tree.column("# 3", anchor=CENTER, minwidth=0, width=100, stretch=NO)
+        tree.heading("# 3", text="Date")
+        tree.column("# 4", anchor=CENTER, minwidth=0, width=100, stretch=NO)
+        tree.heading("# 4", text="From")
+        tree.column("# 5", anchor=CENTER, minwidth=0, width=100, stretch=NO)
+        tree.heading("# 5", text="To")
+        tree.column("# 6", anchor=CENTER, minwidth=0, width=100, stretch=NO)
+        tree.heading("# 6", text="Location")
+        tree.column("# 7", anchor=CENTER, minwidth=0, width=100, stretch=NO)
+        tree.heading("# 7", text="Seats")
+        tree.column("# 8", anchor=CENTER, minwidth=0, width=100, stretch=NO)
+        tree.heading("# 8", text="Cost")
+
+        # Insert the data in Treeview widget
+        tree.insert('', 'end', text="1", values=('1', 'Joe', 'Nash', 'asd', 'asd', 'asd', 'asd', 'asd'))
+        tree.insert('', 'end', text="1", values=('1', 'Joe', 'Nash', 'asd', 'asd', 'asd', 'asd', 'asd'))
+        tree.insert('', 'end', text="1", values=('1', 'Joe', 'Nash', 'asd', 'asd', 'asd', 'asd', 'asd'))
+        tree.insert('', 'end', text="1", values=('1', 'Joe', 'Nash', 'asd', 'asd', 'asd', 'asd', 'asd'))
 
         return tree
 
@@ -106,13 +137,13 @@ class Example(Frame):
         leftbotframe = LabelFrame(self, text="Publish Ride", padx=15, pady=15)
         rightbotframe = LabelFrame(self, text="User", padx=15, pady=15)
             #PACK
-        lefttopframe.grid(row=0, column=0, sticky="nsew")
-        righttopframe.grid(row=0, column=1, sticky="nsew")
-        leftbotframe.grid(row=1, column=0, sticky="nsew")
-        rightbotframe.grid(row=1, column=1, sticky="nsew")
+        lefttopframe.grid(row=0, column=0, sticky="nsew",padx=15, pady=15)
+        righttopframe.grid(row=0, column=1, sticky="nsew",padx=15, pady=15)
+        leftbotframe.grid(row=1, column=0, sticky="nsew",padx=15, pady=15)
+        rightbotframe.grid(row=1, column=1, sticky="nsew",padx=15, pady=15)
 
         # Left Top Frame - OFFER RIDES
-        offerlistview = self.createListBox(lefttopframe)
+        offerlistview = self.createListBoxOffer(lefttopframe)
         offerlistview.grid(row=0, column=0)
         btnbid = Button(lefttopframe, text="Bid", command=bid)
         btnbid.grid(row=1, column=0)
@@ -167,14 +198,18 @@ class Example(Frame):
         button_publish_ride.pack()
 
         # Right Top Frame
-        myrideslistview = self.createListBox(righttopframe)
+        myrideslistview = self.createListBoxRides(righttopframe)
         myrideslistview.pack()
 
         # Right Bot Frame
         select_avatar_frame = Frame(rightbotframe)
+        user_frame = Frame(rightbotframe)
+        save_load_frame = Frame(rightbotframe)
+            #PACK
         select_avatar_frame.pack()
-            # Avatar selector
-
+        user_frame.pack()
+        save_load_frame.pack()
+            #Avatar selector
         label_avatar_img = self.getImage(select_avatar_frame,"C:\\Users\\hrswf\\PycharmProjects\\CryptoRidePycharm\\adol_"+str(self.current_avatar) + ".png",(80,80))
         button_left_user = Button(select_avatar_frame, text=" < ",command=lambda: self.changeAvatar(label_avatar_img, -1))
         button_right_user =Button(select_avatar_frame,text= " > ",command=lambda:self.changeAvatar(label_avatar_img,+1))
@@ -182,17 +217,41 @@ class Example(Frame):
         button_left_user.pack(side=LEFT, expand=YES, padx=10, pady=10)
         label_avatar_img.pack(side=LEFT, expand=YES, padx=10, pady=10)
         button_right_user.pack(side=LEFT, expand=YES, padx=10, pady=10)
+            #User
+        label_username = Label(user_frame, text= "Username:")
+        entry_username = Entry(user_frame)
+        label_eth_address = Label(user_frame, text="Ethereum address:")
+        entry_eth_address = Entry(user_frame)
+            #PACK
+        label_username.grid(row=0,column=0, padx=10, pady=10)
+        entry_username.grid(row=0,column=1, padx=10, pady=10)
+        label_eth_address.grid(row=1,column=0, padx=10, pady=10)
+        entry_eth_address.grid(row=1,column=1, padx=10, pady=10)
+            #Save and load buttons
+        button_load = Button(save_load_frame,text="Load wallet",command=loadWallet)
+        button_save = Button(save_load_frame,text="Save profile",command=saveProfile)
+        button_save.grid(row=0,column=1, padx=10, pady=10)
+        button_load.grid(row=0,column=0, padx=10, pady=10)
+
 
 def bid():
-    print("bidding")
+    print("Bidding")
     #TODO IMPLEMENT
 
 def publishRide():
     print("Publishing ride...")
     #TODO IMPLEMENT
+
+def loadWallet():
+    print("Loading Wallet...")
+    # TODO IMPLEMENT
+def saveProfile():
+    print("Saving Profile...")
+    # TODO IMPLEMENT
 def main():
     root = Tk()
-    root.geometry("1000x600+100+100")
+    root.geometry("1550x520+100+100")
+    root.resizable(width=False,height=False)
     app = Example()
     root.mainloop()
 
