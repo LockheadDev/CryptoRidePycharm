@@ -5,7 +5,7 @@ from tkinter import ttk
 from tkcalendar import DateEntry
 from tktimepicker import AnalogPicker, SpinTimePickerModern, SpinTimePickerOld
 from PIL import Image, ImageTk
-
+from web3 import Web3
 import BlockChainController as bcc
 from classes import *
 import os
@@ -36,9 +36,6 @@ class Example(Frame):
         self.index_user_id = self.index_user_id + 1
         print(str(self.current_user.username) + str(self.index_user_id))
 
-    def publishRide(self, eth_address, _id, from_time, until_time, location, base_cost, av_seats):
-        print("Publishing ride...")
-        bcc.publishRide(eth_address, _id, from_time, until_time, location, base_cost, av_seats)
     # </editor-fold>
 
     # <editor-fold desc="UI Elements">
@@ -159,7 +156,6 @@ class Example(Frame):
     def initUI(self):
         self.columnconfigure(0, pad=10)
         self.columnconfigure(1, pad=10)
-
         self.master.title("CryptoRide")
         self.pack(fill=BOTH, expand=True)
 
@@ -176,9 +172,15 @@ class Example(Frame):
 
         # Left Top Frame - OFFER RIDES
         offerlistview = self.createListBoxOffer(lefttopframe)
-        offerlistview.grid(row=0, column=0)
+        label_bid = Label(lefttopframe, text= "Amount: ")
+        entry_bid = Entry(lefttopframe)
         btnbid = Button(lefttopframe, text="Bid", command=bid)
-        btnbid.grid(row=1, column=0)
+
+
+        offerlistview.pack(side=TOP, padx=5, pady=5)
+        label_bid.pack(side=LEFT, padx=5, pady=5)
+        entry_bid.pack(side=LEFT, padx=5, pady=5)
+        btnbid.pack(side=LEFT, padx=5, pady=5)
 
         # Left Bot Frame - PUBLISH RIDE
         date_time_frame = Frame(leftbotframe)
@@ -227,9 +229,9 @@ class Example(Frame):
         cost_frame.pack()
         # Button to publish the ride!
         button_publish_ride = Button(leftbotframe, text="Publish ride offer",
-                                     command=lambda: self.publishRide(
+                                     command=lambda: bcc.publishRide(
                                          str(self.current_user.eth_address),
-                                         str(index_user_id),
+                                         int(index_user_id),
                                          str(from_time_picker.time()),
                                          str(timepicker_to.time()),
                                          str(self.current_location.get()),
@@ -280,13 +282,6 @@ class Example(Frame):
         button_save.grid(row=0, column=1, padx=10, pady=10)
         button_load.grid(row=0, column=0, padx=10, pady=10)
 
-def bid():
-    print("Bidding")
-    # TODO IMPLEMENT
-
-
-
-    # TODO IMPLEMENT
 
 
 def exportWallet():
