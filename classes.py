@@ -8,11 +8,12 @@ class User:
 
 
 class Ride:
-    def __init__(self, id, av_seats, driver, passengers, from_time, until_time, base_cost):
+    def __init__(self, id, av_seats, date, from_time, until_time, base_cost, location, driver=User("","","")):
         self.id = id
-        self.driver = driver
-        self.passengers = passengers
         self.av_seats = av_seats
+        self.driver = driver
+        self.date = date
         self.from_time = from_time
         self.until_time = until_time
         self.base_cost = base_cost
+        self.location = location
