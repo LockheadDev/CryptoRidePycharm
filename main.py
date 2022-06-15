@@ -23,6 +23,7 @@ class Example(Frame):
     # INIT
     def __init__(self):
         # GUI ELEMENTS
+        self.widgets_publish_ride=[]
         self.ride_id = 0
         self.current_avatar = 0
         self.current_location = None
@@ -30,9 +31,11 @@ class Example(Frame):
         self.offer_list = ttk.Treeview
         self.thread = threading.Thread(target=self.checkContractDateTime, args=(30,))
         self.thread.start()
+        self.isCreatingUser = False
+        self.isLogging = False
 
         # BACKEND ELEMENTS
-        self.current_user = User("", "", "")
+        self.current_user = User("", "", "","")
         self.all_users = []
         self.offer_rides = []
 
@@ -44,17 +47,17 @@ class Example(Frame):
         while True:
             print("--CHECKING PUBLSIHED RIDES--")
             now = datetime.now()
-            time_now_hour = str(now.hour)
-            time_now_minute = str(now.minute)
-            date_now_year = str(now.year)
-            date_now_month = str(now.month)
-            date_now_day = str(now.day)
+            time_now_hour = now.hour
+            time_now_minute = now.minute
+            date_now_year = now.year
+            date_now_month = now.month
+            date_now_day = now.day
 
-            print("Hour: " + time_now_hour)
-            print("Minute: " + time_now_minute)
-            print("Year: " + date_now_year)
-            print("Month: " + date_now_month)
-            print("Day: " + date_now_day)
+            print("Hour: " + str(time_now_hour))
+            print("Minute: " + str(time_now_minute))
+            print("Year: " + str(date_now_year))
+            print("Month: " + str(date_now_month))
+            print("Day: " + str(date_now_day))
 
             for ride in self.offer_rides:
                 print("Checking ride: " + str(ride.id))
@@ -63,14 +66,13 @@ class Example(Frame):
                 print(ride_time)
                 print(ride_date)
                 # TODO FIX FORMATS mont and day check console
-                if int(ride_date[1]) < 10: ride_date[1].replace('0', '')
-                if int(ride_date[2]) < 10: ride_date[2].replace('0', '')
-                if (ride_time[0] == time_now_hour and ride_time[1] == time_now_minute):
+                if (int(ride_time[0]) == time_now_hour and int(ride_time[1]) == time_now_minute):
                     print("time same")
-                    if (ride_date[0] == date_now_year and ride_date[1] == date_now_month and ride_date[2] == date_now_day):
+                    if (int(ride_date[0]) == date_now_year and int(ride_date[1]) == date_now_month and int(ride_date[2]) == date_now_day):
                         print("date same")
                         bcc.closeRide(ride.id, ride.driver.eth_address)
-                        # TODO PAY CONTRACT
+                        bcc.payRide(ride.id, ride.driver.eth_address)
+                        self.deleteRideFromList(ride.id)
             time.sleep(segundos)
 
     def bid(self, user, amount, ride_id):
@@ -88,18 +90,110 @@ class Example(Frame):
             tkinter.messagebox.showwarning(title="Warning!", message="Your bid must be higher than the highest bid!")
         else:
             user.passenger_rides.append(self.offer_rides[ride_id])
+            self.offer_rides[int(ride_id)].base_cost = amount #actualizamos precio dependiendo del highest bid
             self.updateMyRides(user)
+            self.updateOfferTreeView()
 
-    def saveProfile(self, username, eth_address, avatar_index):
-        print("Saving Profile...")
-        print(username + eth_address + str(avatar_index))
+    def loginWindow(self):
+        if self.isLogging : return
+        self.isLogging = True
+        login_window = Toplevel()
+        select_avatar_frame = Frame(login_window)
+        user_frame = Frame(login_window)
+        save_load_frame = Frame(login_window)
+        # PACK
+        user_frame.pack()
+        save_load_frame.pack()
+        # User
+        label_username = Label(user_frame, text="Username:")
+        entry_username = Entry(user_frame, width=45)
+        label_password = Label(user_frame, text="Password:")
+        entry_password = Entry(user_frame, width=45,show="*")
+        # PACK
+        label_username.grid(row=0, column=0, padx=10, pady=10)
+        entry_username.grid(row=0, column=1, padx=10, pady=10, sticky="W")
+        label_password.grid(row=1, column=0, padx=10, pady=10)
+        entry_password.grid(row=1, column=1, padx=10, pady=10, sticky="W")
+        # Save and load buttons
+
+        button_save = Button(save_load_frame, text="Login",
+                             command=lambda: self.login(entry_username.get(),
+                                                        entry_password.get(),
+                                                        login_window))
+        button_save.grid(row=0, column=0, padx=10, pady=10)
+
+    def login(self, username,password,view):
+        print("Logging...")
+        for user in self.all_users:
+            if user.username == username and user.password ==password:
+                self.current_user = user
+                self.isLogging = False
+                view.destroy()
+                return
+        tkinter.messagebox.showwarning(title="Warning!", message="User not found!")
+
+    def createUser(self,username,password,eth_address,view):
+        print("Creating new user...")
+        if(username == "" or password == "" or eth_address== ""):
+            tkinter.messagebox.showwarning(title="Warning!",message="You must fill al fields correctly!")
+            return
         for user in self.all_users:
             if user.eth_address == eth_address:
-                self.current_user = user
+                tkinter.messagebox.showwarning(title="Warning!",message="This ethereum address is already in use!")
                 return
-        self.current_user = User(username, eth_address, avatar_index)
+
+        self.current_user = User(username,password,eth_address,self.current_avatar)
         self.all_users.append(self.current_user)
-        self.updateMyRides(self.current_user)
+        self.isCreatingUser = False
+        view.destroy()
+
+    def signUp(self):
+        if self.isCreatingUser: return
+        self.isCreatingUser = True
+        print("Signing up...")
+        sign_up_window = Toplevel()
+        sign_up_window.protocol("WM_DELETE_WINDOW", lambda:self.on_closingUserCreate(sign_up_window))
+        sign_up_window.title = "New profile"
+
+        select_avatar_frame = Frame(sign_up_window)
+        user_frame = Frame(sign_up_window)
+        save_load_frame = Frame(sign_up_window)
+        # PACK
+        select_avatar_frame.pack()
+        user_frame.pack()
+        save_load_frame.pack()
+        # Avatar selector
+        label_avatar_img = self.getImage(select_avatar_frame, "/adol_" + str(self.current_avatar) + ".png", (80, 80))
+        button_left_user = Button(select_avatar_frame, text=" < ",
+                                  command=lambda: self.changeAvatar(label_avatar_img, -1))
+        button_right_user = Button(select_avatar_frame, text=" > ",
+                                   command=lambda: self.changeAvatar(label_avatar_img, +1))
+        # PACK
+        button_left_user.pack(side=LEFT, expand=YES, padx=10, pady=10)
+        label_avatar_img.pack(side=LEFT, expand=YES, padx=10, pady=10)
+        button_right_user.pack(side=LEFT, expand=YES, padx=10, pady=10)
+        # User
+        label_username = Label(user_frame, text="Username:")
+        entry_username = Entry(user_frame, width=45)
+        label_password = Label(user_frame, text="Password:")
+        entry_password = Entry(user_frame, width=45,show="*")
+        label_eth_address = Label(user_frame, text="Ethereum address:")
+        entry_eth_address = Entry(user_frame, width=45)
+
+
+
+        # PACK
+        label_username.grid(row=0, column=0, padx=10, pady=10)
+        entry_username.grid(row=0, column=1, padx=10, pady=10, sticky="W")
+        label_password.grid(row=1,column=0, padx=10, pady=10)
+        entry_password.grid(row=1,column=1, padx=10, pady=10, sticky="W")
+        label_eth_address.grid(row=2, column=0, padx=10, pady=10)
+        entry_eth_address.grid(row=2, column=1, padx=10, pady=10, sticky="W")
+
+        button_new_profile = Button(save_load_frame, text="Create user", command=lambda: self.createUser(entry_username.get(),entry_password.get(),entry_eth_address.get(),sign_up_window))
+        button_new_profile.grid(row=0, column=0, padx=10, pady=10)
+
+        sign_up_window.mainloop()
 
     def publishRide(self, ride=Ride(None, None, None, None, None, None, None)):
         if self.current_user.eth_address == '': return
@@ -114,9 +208,19 @@ class Example(Frame):
                         ride.base_cost, ride.av_seats)
         ride.driver.driver_ride = ride
 
+
     # </editor-fold>
 
     # <editor-fold desc="UI Elements">
+    def on_closingUserCreate(self,view):
+        self.isCreatingUser = False
+        view.destroy()
+        pass
+    def on_closingUserLogin(self,view):
+        self.isLogging = False
+        view.destroy()
+        pass
+
     def changeAvatar(self, label, num):
         if (num + self.current_avatar > 4 or num + self.current_avatar < 0): return
         self.current_avatar += num
@@ -176,6 +280,13 @@ class Example(Frame):
         }
         dropdown = OptionMenu(frame, self.current_seats, *options)
         return dropdown
+
+    def deleteRideFromList(self, id):
+        the_ride = None
+        for ride in self.offer_rides:
+            if(ride.id ==id): the_ride = ride
+        self.offer_rides.remove(the_ride)
+        self.updateOfferTreeView()
 
     def getSelectedItem(self, treeview=ttk.Treeview):
         item_text = ""
@@ -256,39 +367,8 @@ class Example(Frame):
 
         return tree
 
-    # </editor-fold>
-
-    def initUI(self):
-        self.columnconfigure(0, pad=10)
-        self.columnconfigure(1, pad=10)
-        self.master.title("CryptoRide")
-        self.pack(fill=BOTH, expand=True)
-
-        # MAIN FRAMES
-        lefttopframe = LabelFrame(self, text="Ride Offer", padx=10, pady=10)
-        righttopframe = LabelFrame(self, text="My Rides", padx=10, pady=10)
-        leftbotframe = LabelFrame(self, text="Publish Ride", padx=10, pady=10)
-        rightbotframe = LabelFrame(self, text="User", padx=10, pady=10)
-        # PACK
-        lefttopframe.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
-        righttopframe.grid(row=0, column=1, sticky="nsew", padx=10, pady=10)
-        leftbotframe.grid(row=1, column=0, sticky="nsew", padx=10, pady=10)
-        rightbotframe.grid(row=1, column=1, sticky="nsew", padx=10, pady=10)
-
-        # Left Top Frame - OFFER RIDES
-        label_offer_list = Label(lefttopframe, text="Select a ride from the list and bid the desired amount.")
-        self.offer_list = self.createListBoxOffer(lefttopframe)
-        label_bid = Label(lefttopframe, text="Amount: ")
-        entry_bid = Entry(lefttopframe)
-        btn_bid = Button(lefttopframe, text="Bid", command=lambda: self.bid(self.current_user, entry_bid.get(),
-                                                                            self.getSelectedItem(self.offer_list)))
-
-        label_offer_list.pack(side=TOP)
-        self.offer_list.pack(side=TOP, padx=5, pady=5)
-        label_bid.pack(side=LEFT, padx=5, pady=5)
-        entry_bid.pack(side=LEFT, padx=5, pady=5)
-        btn_bid.pack(side=LEFT, padx=5, pady=5)
-
+    def createLeftBotFrame(self,leftbotframe):
+        _list = []
         # Left Bot Frame - PUBLISH RIDE
         date_time_frame = Frame(leftbotframe)
         # Date entry
@@ -346,16 +426,18 @@ class Example(Frame):
                                              int(entry_cost.get()),
                                              str(self.current_location.get()),
                                              self.current_user
-                                         )))
+                                         )
+                                     )
+                                     )  # TODO ERASE LEFTBOTFRAME STATUS
         button_publish_ride.pack()
 
-        # Right Top Frame - MY RIDES
+    def createRightTopFrame(self, righttopframe):
         label_my_rides = Label(righttopframe, text="My rides")
         self.my_rides_list = self.createListBoxRides(righttopframe)
         label_my_rides.pack()
         self.my_rides_list.pack(fill=BOTH, expand=YES)
 
-        # Right Bot Frame
+    def createRightBotFrame(self,rightbotframe):
         select_avatar_frame = Frame(rightbotframe)
         user_frame = Frame(rightbotframe)
         save_load_frame = Frame(rightbotframe)
@@ -376,31 +458,65 @@ class Example(Frame):
         # User
         label_username = Label(user_frame, text="Username:")
         entry_username = Entry(user_frame, width=45)
-        label_eth_address = Label(user_frame, text="Ethereum address:")
-        entry_eth_address = Entry(user_frame, width=45)
+        label_password = Label(user_frame, text="Password:")
+        entry_password = Entry(user_frame, width=45)
         # PACK
         label_username.grid(row=0, column=0, padx=10, pady=10)
         entry_username.grid(row=0, column=1, padx=10, pady=10, sticky="W")
-        label_eth_address.grid(row=1, column=0, padx=10, pady=10)
-        entry_eth_address.grid(row=1, column=1, padx=10, pady=10, sticky="W")
+        label_password.grid(row=1, column=0, padx=10, pady=10)
+        entry_password.grid(row=1, column=1, padx=10, pady=10, sticky="W")
         # Save and load buttons
 
-        button_save = Button(save_load_frame, text="Save profile",
-                             command=lambda: self.saveProfile(entry_username.get(),
-                                                              entry_eth_address.get(),
-                                                              self.current_avatar
-                                                              ))
-        button_save.grid(row=0, column=1, padx=10, pady=10)
+        button_save = Button(save_load_frame, text="Login",
+                             command=lambda: self.loginWindow())
+        button_new_profile = Button(save_load_frame, text="Sign Up", command=lambda: self.signUp())
+        button_save.grid(row=0, column=0, padx=10, pady=10)
+        button_new_profile.grid(row=0, column=1, padx=10, pady=10)
 
+    def createLeftTopFrame(self, lefttopframe):
+        label_offer_list = Label(lefttopframe, text="Select a ride from the list and bid the desired amount.")
+        self.offer_list = self.createListBoxOffer(lefttopframe)
+        label_bid = Label(lefttopframe, text="Amount: ")
+        entry_bid = Entry(lefttopframe)
+        btn_bid = Button(lefttopframe, text="Bid", command=lambda: self.bid(self.current_user, entry_bid.get(),
+                                                                            self.getSelectedItem(self.offer_list)))
 
-def exportWallet():
-    print("Exporting Wallet...")
-    # TODO IMPLEMENT
+        label_offer_list.pack(side=TOP)
+        self.offer_list.pack(side=TOP, padx=5, pady=5)
+        label_bid.pack(side=LEFT, padx=5, pady=5)
+        entry_bid.pack(side=LEFT, padx=5, pady=5)
+        btn_bid.pack(side=LEFT, padx=5, pady=5)
+    # </editor-fold>
 
+    def initUI(self):
+        self.columnconfigure(0, pad=10)
+        self.columnconfigure(1, pad=10)
+        self.master.title("CryptoRide")
+        self.pack(fill=BOTH, expand=True)
 
-def loadWallet():
-    print("Loading Wallet...")
-    # TODO IMPLEMENT
+        # MAIN FRAMES
+        lefttopframe = LabelFrame(self, text="Ride Offer", padx=10, pady=10)
+        righttopframe = LabelFrame(self, text="My Rides", padx=10, pady=10)
+        leftbotframe = LabelFrame(self, text="Publish Ride", padx=10, pady=10)
+        rightbotframe = LabelFrame(self, text="User", padx=10, pady=10)
+        # PACK
+        lefttopframe.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
+        righttopframe.grid(row=0, column=1, sticky="nsew", padx=10, pady=10)
+        leftbotframe.grid(row=1, column=0, sticky="nsew", padx=10, pady=10)
+        rightbotframe.grid(row=1, column=1, sticky="nsew", padx=10, pady=10)
+
+        # Left Top Frame - OFFER RIDES
+        self.createLeftTopFrame(lefttopframe)
+
+        # Left Bot Frame - PUBLISH RIDE
+        self.createLeftBotFrame(leftbotframe)
+
+        # Right Top Frame - MY RIDES
+        self.createRightTopFrame(righttopframe)
+
+        # Right Bot Frame -LOGIN
+        self.createRightBotFrame(rightbotframe)
+
 
 
 def main():
@@ -409,10 +525,8 @@ def main():
     app = Example()
     root.mainloop()
 
-
 def initBlockChain():
     bcc.deployContract()
-
 
 if __name__ == '__main__':
     initBlockChain()

@@ -56,7 +56,13 @@ def bidForRide(eth_address, _id, bid):
         print("Successful biddding!")
         return True
     return False
+
 def closeRide(_id,driver_eth_address):
     tx_hash = contract.functions.closeRide(_id).transact({'from': driver_eth_address})
     web3.eth.waitForTransactionReceipt(tx_hash)
     print("Successful ride closing!")
+
+def payRide(ride_id,driver_eth_address):
+    tx_hash = contract.functions.payRide(ride_id).transact({'from': driver_eth_address})
+    web3.eth.waitForTransactionReceipt(tx_hash)
+    print("Successful ride payment!")
