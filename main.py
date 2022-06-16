@@ -89,6 +89,7 @@ class Example(Frame):
                     if (int(ride_date[0]) <= date_now_year and int(ride_date[1]) <= date_now_month and int(
                             ride_date[2]) <= date_now_day):
                         print("date same")
+                        ride.driver.driver_ride = None
                         bcc.closeRide(ride.id, ride.driver.eth_address)
                         bcc.payRide(ride.id, ride.driver.eth_address)
                         self.deleteRideFromList(ride.id)
