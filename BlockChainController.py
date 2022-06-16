@@ -66,3 +66,6 @@ def payRide(ride_id,driver_eth_address):
     tx_hash = contract.functions.payRide(ride_id).transact({'from': driver_eth_address})
     web3.eth.waitForTransactionReceipt(tx_hash)
     print("Successful ride payment!")
+
+def getEth(eth_address):
+    return web3.fromWei(web3.eth.get_balance(eth_address), 'ether')

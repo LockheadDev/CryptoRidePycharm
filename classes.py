@@ -1,3 +1,4 @@
+import BlockChainController as bcc
 class User:
     def __init__(self, username,password, eth_address, avatar_index):
         self.username = username
