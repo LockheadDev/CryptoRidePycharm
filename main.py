@@ -15,9 +15,6 @@ import os
 import time
 
 
-# TODO - UPDATE COST VALUE IN TREEVIEW AFTER BID
-
-
 class Example(Frame):
 
     # INIT
